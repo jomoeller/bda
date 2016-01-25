@@ -3,6 +3,8 @@
 BDA - BCC Defect Analysis 
 ****************************************************************************************
 
+The source code will be made online immediately after acceptance for publication in a peer-reviewed journal.
+
 Written by: 
       Johannes J. Möller (johannes.moeller@fau.de),
       Department of Materials Science and Engineering, Institute I, 
