@@ -1,6 +1,6 @@
 ****************************************************************************************
-# BDA (BCC Defect Analysis)
-## A novel method for identifying defects in body-centered cubic crystals
+### BDA (BCC Defect Analysis)
+#### A novel method for identifying defects in body-centered cubic crystals
 ****************************************************************************************
 
 Developed and written by:   
@@ -14,10 +14,10 @@ Department of Materials Science and Engineering, Institute I, FAU Erlangen-Nürn
 The BDA is an algorithm for detecting crystallographic defects in body-centered cubic metals.
 In its current implementation, the BDA is a Python script that uses the scripting interface of OVITO (http://www.ovito.org).
 
-### Prerequisites
+#### Prerequisites
 
-### Using the BDA
+#### Using the BDA
 
-### Examples
+#### Examples
 
 ****************************************************************************************
