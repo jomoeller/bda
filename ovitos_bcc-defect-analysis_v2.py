@@ -440,8 +440,8 @@ def get_neighbors(i):
 def controller():
   global VERBOSE,bc,br,alats,filenames,include_perfect,keep_unidentified
 
-  p = argparse.ArgumentParser(description='A descr',
-                                     prog='ovitos_bcc-defect-analysis.py',
+  p = argparse.ArgumentParser(description='BDA (BCC Defect Analysis) - A novel method for identifying defects in body-centered cubic crystals. Developed and written by Johannes J. Moeller, johannes.moeller@fau.de. Please visit http://jomoeller.github.io/bda/ for further information.',
+                                     prog='ovitos_bcc-defect-analysis_v2.py',
                                     usage= '%(prog)s [options]')
   p.add_argument('-c','--config',nargs='+',help='Atomistic configuration(s) in IMD format',required=True)
   p.add_argument('-b','--boundary-conditions',nargs=3,help='Boundary conditions (0:free|1:periodic)',type=int,default=[0,0,0],metavar=('X','Y','Z'))
