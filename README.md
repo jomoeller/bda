@@ -1,6 +1,6 @@
-# BDA
 ****************************************************************************************
-**BDA - A novel method for identifying defects in body-centered cubic crystals**
+### BDA (BCC Defect Analysis)
+#### A novel method for identifying defects in body-centered cubic crystals
 ****************************************************************************************
 
 The accurate and fast identification of crystallographic defects plays a key role for the analysis of atomistic simulation output data. For face-centered cubic (fcc) metals, most existing structure analysis tools allow for the direct distinction of common defects, such as stacking faults or certain low-index surfaces. For body-centered cubic (bcc) metals, on the other hand, a robust way to identify such defects is currently not easily available.
@@ -30,5 +30,7 @@ If possible, please also include a link to this website:
 The author greatfully acknowledges the supervision and support of   
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Prof. Dr. Erik Bitzek (erik.bitzek@fau.de),  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Department of Materials Science and Engineering, Institute I, FAU Erlangen-Nürnberg, Germany.
+
+For system prerequisites, usage information, and examples please read the https://github.com/jomoeller/bda/wiki.
 
 ****************************************************************************************
