@@ -31,6 +31,6 @@ The author greatfully acknowledges the supervision and support of
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Prof. Dr. Erik Bitzek (erik.bitzek@fau.de),  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Department of Materials Science and Engineering, Institute I, FAU Erlangen-Nürnberg, Germany.
 
-For system prerequisites, usage information, and examples please read the [https://github.com/jomoeller/bda/wiki](wiki).
+For system prerequisites, usage information, and examples please read the [wiki](https://github.com/jomoeller/bda/wiki).
 
 ****************************************************************************************
