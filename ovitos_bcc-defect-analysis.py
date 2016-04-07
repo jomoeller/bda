@@ -482,7 +482,7 @@ def controller():
     for pot in known_potentials[0]:
       if pot in args.potential:
         alats.append(known_potentials[1][known_potentials[0].index(pot)])
-        print("Lattice parameter of ",pot," potential for all configurations: ",alats[0])
+#        print("Lattice parameter of ",pot," potential for all configurations: ",alats[0])
   else:
     for pot in known_potentials[0]:
       for file in filenames:
