@@ -1,11 +1,9 @@
 # BDA
 ****************************************************************************************
-BDA - BCC Defect Analysis 
+BDA - A novel method for identifying defects in body-centered cubic crystals
 ****************************************************************************************
 
-The source code will be made online immediately after acceptance for publication in a peer-reviewed journal.
-
-Written by: 
+Developed and written by: 
       Johannes J. Möller (johannes.moeller@fau.de),
       Department of Materials Science and Engineering, Institute I, 
       Friedrich-Alexander-Universität Erlangen-Nürnberg (FAU), Germany.
