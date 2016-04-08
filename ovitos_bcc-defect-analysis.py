@@ -10,13 +10,13 @@
 #      - A novel method for identifying defects in body-centered cubic crystals -        #
 #                                                                                        #
 # Developed and written by:                                                              #
-#     Johannes J. Moeller (johannes.moeller@fau.de),                                     #
+#     Johannes J. Möller (johannes.moeller@fau.de),                                      #
 #     Department of Materials Science and Engineering, Institute I,                      #
 #     Friedrich-Alexander-Universität Erlangen-Nürnberg (FAU), Germany.                  #
 #                                                                                        #
 # If you used the BDA method to analyze your simulation results,                         #
 # please cite the BDA in your publications as follows:                                   #
-#     J.J. Moeller and E. Bitzek                                                         #
+#     J.J. Möller and E. Bitzek                                                          #
 #     BDA: A novel method for identifying defects in body-centered cubic crystals        #
 #     MethodsX 3 (2016), 279-288                                                         #
 #     http://dx.doi.org/10.1016/j.mex.2016.03.013                                        #
@@ -438,6 +438,7 @@ def get_neighbors(i):
 def controller():
   global VERBOSE,bc,br,alats,filenames,include_perfect,keep_unidentified
 
+
   p = argparse.ArgumentParser(description='BDA (BCC Defect Analysis) - A novel method for identifying defects in body-centered cubic crystals. Developed and written by Johannes J. Moeller, johannes.moeller@fau.de. Please visit http://jomoeller.github.io/bda/ for further information.',
                                      prog='ovitos_bcc-defect-analysis_v2.py',
                                     usage= '%(prog)s [options]')
@@ -502,10 +503,17 @@ def main():
   global atom_nrs,atom_types,atom_masses,atom_pos,atom_coord,atom_csp,atom_cna,atom_defect,atom_neighbors,bonds
   global lasti,lastindex,max_neighbors,blk,srf,vcn,dsl,twn,plf,els,include_perfect,keep_unidentified
   global f,filenames,alats,bc,br
-  
+  global ovito_new 
   # Handle arguments passed to the script:
   controller()
 
+  # checking for current Ovito version:
+  res = subprocess.check_output(['ovito','--version'])
+  if 'Ovito 2.6.1-' in res.decode('utf-8'):
+    ovito_new = True
+  else:
+    ovito_new = False
+  print("Working with Ovito version newer than 2.6.1: ", ovito_new)
 
   # Handle non-periodic boundary conditions:
   if bc[0] == 0: xtrafo=1.1
@@ -540,7 +548,8 @@ def main():
     print("Importing file...", end="",flush=True)
     time1=time.time()
     node = import_file(file)
-    if ovito.version[1] > 5: cell = node.source.cell # for ovito version > 2.6.0
+    # for ovito version newer than 2.6.1:
+    if ovito_new == True: cell = node.source.cell
     node.remove_from_scene()
     node.compute()
     time2=time.time()
@@ -622,7 +631,7 @@ def main():
     # We start here with the output in case also perfect atoms should be included in the output:
     data=node.output								# will be overwritten later on
     nr_atoms=data.particle_identifier.array.size	# will be overwritten later on
-    if ovito.version[1] > 5: 
+    if ovito_new == True: 
       box = cell.matrix[0:3,0:3] # for ovito version > 2.6.0
     else: 
       box = []
