@@ -20,7 +20,7 @@ $> gunzip example.chkpt.gz
 2. Run the BDA with ovitos:
 ===========================
 
-$> ovitos ~/bin/ovitos_bcc-defect-analysis.py -c example.chkpt -b 0 0 0 -p Men-II
+$> ovitos /path/to/bda/ovitos_bcc-defect-analysis.py -c example.chkpt -b 0 0 0 -p Men-II
 
 Note: the command "ovitos" might be different on your system, e.g., /opt/ovito-2.6.1-37-x86_64/bin/ovitos
 
