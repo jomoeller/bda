@@ -515,11 +515,11 @@ def main():
     ovito_bin = ovito.__file__.split('lib',1)[0] + 'bin/ovito'
     ovito_ver = subprocess.check_output([ovito_bin,'--version']).decode('utf-8')
   print("This is the BCC Defect Analysis working with", ovito_ver)
-  if 'Ovito 2.6.1-' in ovito_ver:
-    ovito_new = True
-  else:
-    ovito_new = False
-  print("Ovito version newer than 2.6.1: ", ovito_new)
+#  if 'Ovito 2.6.1-' in ovito_ver:
+#    ovito_new = True
+#  else:
+#    ovito_new = False
+#  print("Ovito version newer than 2.6.1: ", ovito_new)
 
   # Handle non-periodic boundary conditions:
   if bc[0] == 0: xtrafo=1.1
@@ -555,7 +555,8 @@ def main():
     time1=time.time()
     node = import_file(file)
     # for ovito version newer than 2.6.1:
-    if ovito_new == True: cell = node.source.cell
+#    if ovito_new == True: cell = node.source.cell
+    box = asarray(node.source.cell.matrix)
     node.remove_from_scene()
     node.compute()
     time2=time.time()
@@ -637,13 +638,13 @@ def main():
     # We start here with the output in case also perfect atoms should be included in the output:
     data=node.output								# will be overwritten later on
     nr_atoms=data.particle_identifier.array.size	# will be overwritten later on
-    if ovito_new == True: 
-      box = cell.matrix[0:3,0:3] # for ovito version > 2.6.1
-    else: 
-      box = []
-      box.append([data.cell.matrix.column(0)[0],data.cell.matrix.column(0)[1],data.cell.matrix.column(0)[2]])
-      box.append([data.cell.matrix.column(1)[0],data.cell.matrix.column(1)[1],data.cell.matrix.column(1)[2]])
-      box.append([data.cell.matrix.column(2)[0],data.cell.matrix.column(2)[1],data.cell.matrix.column(2)[2]])
+#    if ovito_new == True: 
+#      box = cell.matrix[0:3,0:3] # for ovito version > 2.6.1
+#    else: 
+#      box = []
+#      box.append([data.cell.matrix.column(0)[0],data.cell.matrix.column(0)[1],data.cell.matrix.column(0)[2]])
+#      box.append([data.cell.matrix.column(1)[0],data.cell.matrix.column(1)[1],data.cell.matrix.column(1)[2]])
+#      box.append([data.cell.matrix.column(2)[0],data.cell.matrix.column(2)[1],data.cell.matrix.column(2)[2]])
     filename=file + ".bda"
     f = open(filename, 'w')
     f.write('#F A 1 1 1 3 0 4 \n')
