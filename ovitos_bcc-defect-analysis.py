@@ -24,7 +24,7 @@
 #     http://jomoeller.github.io/bda/                                                    #
 ##########################################################################################
 
-import os, sys, subprocess, argparse
+import os, sys, subprocess, argparse, platform
 import time
 from numpy import *
 from ovito.io import *
@@ -508,8 +508,12 @@ def main():
   controller()
 
   # checking for current Ovito version:
-  ovito_bin = ovito.__file__.split('lib',1)[0] + 'bin/ovito'
-  ovito_ver = subprocess.check_output([ovito_bin,'--version']).decode('utf-8')
+  if platform.system() == 'Darwin':
+    ovito_bin = ovito.__file__.split('plugins',1)[0] + '/ovito'
+    ovito_ver = subprocess.check_output([ovito_bin,'--version']).decode('utf-8')  
+  else: 
+    ovito_bin = ovito.__file__.split('lib',1)[0] + 'bin/ovito'
+    ovito_ver = subprocess.check_output([ovito_bin,'--version']).decode('utf-8')
   print("This is the BCC Defect Analysis working with", ovito_ver)
   if 'Ovito 2.6.1-' in ovito_ver:
     ovito_new = True
