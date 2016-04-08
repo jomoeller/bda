@@ -508,12 +508,14 @@ def main():
   controller()
 
   # checking for current Ovito version:
-  res = subprocess.check_output(['ovito','--version'])
-  if 'Ovito 2.6.1-' in res.decode('utf-8'):
+  ovito_bin = ovito.__file__.split('lib',1)[0] + 'bin/ovito'
+  ovito_ver = subprocess.check_output([ovito_bin,'--version']).decode('utf-8')
+  print("This is the BCC Defect Analysis working with", ovito_ver)
+  if 'Ovito 2.6.1-' in ovito_ver:
     ovito_new = True
   else:
     ovito_new = False
-  print("Working with Ovito version newer than 2.6.1: ", ovito_new)
+  print("Ovito version newer than 2.6.1: ", ovito_new)
 
   # Handle non-periodic boundary conditions:
   if bc[0] == 0: xtrafo=1.1
@@ -632,7 +634,7 @@ def main():
     data=node.output								# will be overwritten later on
     nr_atoms=data.particle_identifier.array.size	# will be overwritten later on
     if ovito_new == True: 
-      box = cell.matrix[0:3,0:3] # for ovito version > 2.6.0
+      box = cell.matrix[0:3,0:3] # for ovito version > 2.6.1
     else: 
       box = []
       box.append([data.cell.matrix.column(0)[0],data.cell.matrix.column(0)[1],data.cell.matrix.column(0)[2]])
