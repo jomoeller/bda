@@ -27,6 +27,7 @@
 import os, sys, subprocess, argparse, platform
 import time
 from numpy import *
+import ovito
 from ovito.io import *
 from ovito.data import *
 from ovito.modifiers import *
@@ -390,46 +391,13 @@ def write_atom(i):
   f.write(outstr)
 
 ##########################################################################################
-# GET AN ATOMS NEIGHBORS AND STORE THEM IN A GLOBAL LIST
+# GET AN ATOMS NEIGHBORS
 ##########################################################################################
 
 def get_neighbors(i):
-  global bonds,lastindex,lasti  	# the field 'bonds' is sorted according to the ID of the bond origin
-  global max_neighbors,atom_coord
-  neighbors=[]
-  coord=atom_coord[i]
-  # start with a j according to the last found index and i:
-  if i>lasti:
-    j=lastindex
-  else: 
-    j=0
-
-  lasti=i
-  
-  if atom_neighbors[i][0] != -1:
-#    print(i,"neighborlist already determined.")
-    pass
-  else:
-    list = full(max_neighbors,-1,dtype=int)
-#    print(i,"neighborlist not yet determined.")
-    k=0  
-    while j < bonds.size/2 and k != coord:
-      # if bond origin equals atom i and atom is not a perfect bcc atom:
-      if bonds[j][0]==i:
-#      neighbors.append(bonds[j][1])
-        n=bonds[j][1]
-        if atom_cna[n] != 3 or atom_coord[n] != 14:
-          list[k]=n
-        k+=1
-    # explicit abortion condition (fast):
-      elif bonds[j][0]>i:
-        lastindex=j
-        break
-    # increase counter if the abortion criterion is not fulfilled:
-      j+=1
-    atom_neighbors[i]=list
-
-  return [n for n in atom_neighbors[i] if n > -1]
+  global neighbor_finder
+  global atom_coord
+  return [neigh.index for neigh in neighbor_finder.find(i) if atom_cna[neigh.index] != 3 or atom_coord[neigh.index] != 14]
   
 ##########################################################################################
 # Function to control option parsing in Python
@@ -500,26 +468,14 @@ def controller():
 ##########################################################################################
 
 def main():
-  global atom_nrs,atom_types,atom_masses,atom_pos,atom_coord,atom_csp,atom_cna,atom_defect,atom_neighbors,bonds
-  global lasti,lastindex,max_neighbors,blk,srf,vcn,dsl,twn,plf,els,include_perfect,keep_unidentified
+  global atom_nrs,atom_types,atom_masses,atom_pos,atom_coord,atom_csp,atom_cna,atom_defect,atom_neighbors,neighbor_finder
+  global lasti,max_neighbors,blk,srf,vcn,dsl,twn,plf,els,include_perfect,keep_unidentified
   global f,filenames,alats,bc,br
-  global ovito_new 
   # Handle arguments passed to the script:
   controller()
 
   # checking for current Ovito version:
-  if platform.system() == 'Darwin':
-    ovito_bin = ovito.__file__.split('plugins',1)[0] + '/ovito'
-    ovito_ver = subprocess.check_output([ovito_bin,'--version']).decode('utf-8')  
-  else: 
-    ovito_bin = ovito.__file__.split('lib',1)[0] + 'bin/ovito'
-    ovito_ver = subprocess.check_output([ovito_bin,'--version']).decode('utf-8')
-  print("This is the BCC Defect Analysis working with", ovito_ver)
-#  if 'Ovito 2.6.1-' in ovito_ver:
-#    ovito_new = True
-#  else:
-#    ovito_new = False
-#  print("Ovito version newer than 2.6.1: ", ovito_new)
+  print("This is the BCC Defect Analysis working with OVITO", ovito.version_string)
 
   # Handle non-periodic boundary conditions:
   if bc[0] == 0: xtrafo=1.1
@@ -554,19 +510,16 @@ def main():
     print("Importing file...", end="",flush=True)
     time1=time.time()
     node = import_file(file)
-    # for ovito version newer than 2.6.1:
-#    if ovito_new == True: cell = node.source.cell
-    box = asarray(node.source.cell.matrix)
-    node.remove_from_scene()
-    node.compute()
+    data = node.compute()
+    box = asarray(data.cell)
     time2=time.time()
     ntime=(time2-time1)
     stime+=ntime
     print(" done in %.1f seconds!" % ntime)
 
     # Get the min and max values of the imported configuration:
-    pos_min=amin(node.output.position.array, axis=0)
-    pos_max=amax(node.output.position.array, axis=0)
+    pos_min=amin(data.particles.positions, axis=0)
+    pos_max=amax(data.particles.positions, axis=0)
     dist=[0,0,0]
     slice=[0,0,0]
     for i in range(3):
@@ -574,12 +527,11 @@ def main():
       slice[i]=(pos_max[i]-pos_min[i])-2*br[0]
 
     # define the modifiers to be applied:
-    trafo=AffineTransformationModifier(transform_box=True,transform_particles=False,transformation=[[xtrafo,0,0,0],[0,ytrafo,0,0],[0,0,ztrafo,0]])
-    trafo2=AffineTransformationModifier(transform_box=True,transform_particles=False,transformation=[[1/xtrafo,0,0,0],[0,1/ytrafo,0,0],[0,0,1/ztrafo,0]])
+    trafo=AffineTransformationModifier(operate_on = {'cell'},transformation=[[xtrafo,0,0,0],[0,ytrafo,0,0],[0,0,ztrafo,0]])
+    trafo2=AffineTransformationModifier(operate_on = {'cell'},transformation=[[1/xtrafo,0,0,0],[0,1/ytrafo,0,0],[0,0,1/ztrafo,0]])
     csp=CentroSymmetryModifier(num_neighbors = nearest_neighbors)
-    cna=CommonNeighborAnalysisModifier(adaptive_mode = True)
+    cna=CommonNeighborAnalysisModifier(mode = CommonNeighborAnalysisModifier.Mode.AdaptiveCutoff)
     coord=CoordinationNumberModifier(cutoff = nn2_cutoff)
-    bonds=CreateBondsModifier(cutoff = nn2_cutoff)
 
     # append the modifiers to the node:
     node.modifiers.append(trafo)
@@ -629,22 +581,14 @@ def main():
     
     print("Cutting away atoms at non-periodic boundaries...", end="",flush=True)
     time1=time.time()
-    node.compute()
+    data = node.compute()
     time2=time.time()
     ntime=(time2-time1)
     stime+=ntime
     print(" done in %.1f seconds!" % ntime)
 
     # We start here with the output in case also perfect atoms should be included in the output:
-    data=node.output								# will be overwritten later on
-    nr_atoms=data.particle_identifier.array.size	# will be overwritten later on
-#    if ovito_new == True: 
-#      box = cell.matrix[0:3,0:3] # for ovito version > 2.6.1
-#    else: 
-#      box = []
-#      box.append([data.cell.matrix.column(0)[0],data.cell.matrix.column(0)[1],data.cell.matrix.column(0)[2]])
-#      box.append([data.cell.matrix.column(1)[0],data.cell.matrix.column(1)[1],data.cell.matrix.column(1)[2]])
-#      box.append([data.cell.matrix.column(2)[0],data.cell.matrix.column(2)[1],data.cell.matrix.column(2)[2]])
+    nr_atoms=data.particles.count	# will be overwritten later on
     filename=file + ".bda"
     f = open(filename, 'w')
     f.write('#F A 1 1 1 3 0 4 \n')
@@ -659,14 +603,14 @@ def main():
     if include_perfect:
     
       print("Writing %d atoms in perfect bcc environment..." % nr_atoms, end="", flush=True)
-      atom_nrs=data.particle_identifier.array
-      atom_types=data.particle_type.array
-      atom_masses=data.mass.array
-      atom_pos=data.position.array
-      atom_cna=Array('i',data.structure_type.array)
-      atom_coord=Array('i',data.coordination.array)
-      atom_csp=Array('f',data.centrosymmetry.array)
-      atom_defect=Array('i',[-1]*atom_nrs.size)
+      atom_nrs=data.particles.identifiers
+      atom_types=data.particles.particle_types
+      atom_masses=data.particles.masses
+      atom_pos=data.particles.positions
+      atom_cna=Array('i',data.particles.structure_types)
+      atom_coord=Array('i',data.particles['Coordination'])
+      atom_csp=Array('f',data.particles['Centrosymmetry'])
+      atom_defect=Array('i',[-1]*len(atom_nrs))
 
       for i in range(nr_atoms):
         if atom_cna[i]==3 and atom_coord[i]==14:
@@ -674,21 +618,20 @@ def main():
           write_atom(i)
         
     select_perfect=SelectExpressionModifier(expression = 'StructureType==3&&Coordination==14')
-    delete_selected=DeleteSelectedParticlesModifier()
+    delete_selected=DeleteSelectedModifier()
     node.modifiers.append(select_perfect)
     node.modifiers.append(delete_selected)
     print("Deleting atoms in perfect bcc environment...", end="",flush=True)
     time1=time.time()
-    node.compute()    
+    data = node.compute()    
     time2=time.time()
     ntime=(time2-time1)
     stime+=ntime
     print(" done in %.1f seconds!" % ntime)
 
-    print("Computing bonds to (non-bcc) neighbors...", end="",flush=True) 
-    node.modifiers.append(bonds)
+    print("Preparing non-bcc neighbor finder...", end="",flush=True) 
     time1=time.time()
-    node.compute()
+    neighbor_finder = CutoffNeighborFinder(nn2_cutoff, data)
     time2=time.time()
     ntime=(time2-time1)
     stime+=ntime
@@ -699,33 +642,28 @@ def main():
     export_file(node, file + ".ccc", "imd")
 
     # We continue to work on the remaining atoms:
-    data=node.output
 
     # Oh my god, this is sooo advanced:
-    max_neighbors=max(data.coordination.array)
-    nr_atoms=data.particle_identifier.array.size
-    bonds=data.bonds.array
+    max_neighbors=max(data.particles['Coordination'])
+    nr_atoms=data.particles.count
     print("Numer of remaining atoms:", nr_atoms)
-    print("Numer of bonds:", int(bonds.size/2))
 
     print("Identifying defects...") 
 
-    atom_nrs=data.particle_identifier.array
-    atom_types=data.particle_type.array
-    atom_masses=data.mass.array
-    atom_pos=data.position.array
-    atom_cna=Array('i',data.structure_type.array)
-    atom_coord=Array('i',data.coordination.array)
-    atom_csp=Array('f',data.centrosymmetry.array)
-    atom_defect=Array('i',[-1]*atom_nrs.size)
-#    atom_neighbors=Array('i',[-1]*atom_nrs.size)
-    atom_neighbors=full((atom_nrs.size,max_neighbors), -1,dtype=int)
+    atom_nrs=data.particles.identifiers
+    atom_types=data.particles.particle_types
+    atom_masses=data.particles.masses
+    atom_pos=data.particles.positions
+    atom_cna=Array('i',data.particles.structure_types)
+    atom_coord=Array('i',data.particles['Coordination'])
+    atom_csp=Array('f',data.particles['Centrosymmetry'])
+    atom_defect=Array('i',[-1]*len(atom_nrs))
+#    atom_neighbors=Array('i',[-1]*len(atom_nrs))
+    atom_neighbors=full((len(atom_nrs),max_neighbors), -1,dtype=int)
 #    print(atom_neighbors)
     
     identified=[]
     unidentified=[]
-    lasti=0
-    lastindex=0
     time1=time.time()
     defect_atoms=0
   
